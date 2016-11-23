@@ -49,7 +49,7 @@ Notes
 =====
 
 Some parts of this module are based on Sebastian Rahlf's
-`python-amazon-product-api`.
+`python-amazon-product-api`_.
 
 .. _python-amazon-product-api:
    https://bitbucket.org/basti/python-amazon-product-api
