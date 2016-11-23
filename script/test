@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+# Make sure we're in the root directory of this repo
+cd $(dirname "${BASH_SOURCE[0]}")
+cd ..
+
+pep8 amzn/ tests/
+pytest --cov=amzn --cov-report term-missing tests/

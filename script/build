@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+# Print commands and their arguments as they are executed
+set -x
+
+# This build script simply builds a python wheel for this project
+
+# Make sure we're in the root directory of this repo, since that's where
+# setup.py is.  The first `cd` ensures that we're in the "script/" directory,
+# which is where this script is supposed to live.  The next `cd` moves us up one
+# level, which is supposed to be the root directory of the repo that contains
+# this script.  Note that BASH_SOURCE[0] is the full path of the currently
+# executing script (this one).  So `dirname` of BASH_SOURCE[0] returns the
+# directory containing this script.
+cd $(dirname "${BASH_SOURCE[0]}")
+cd ..
+
+# Get set up to build the wheel
+OS=$(uname)
+if [[ "$OS" == "Darwin" ]]; then  # OS X/macOS
+    # Ensure that virtualenv is active
+    if [ -z "$VIRTUAL_ENV" ]; then
+        # VIRTUAL_ENV gets set when a virtualenv is active
+        echo "ERROR: virtualenv for the project must be active.  Run 'source /path/to/env/bin/activate'."
+        exit 1
+    fi
+    pip3.5 install -r build_requirements.txt
+else
+    echo "ERROR: unsupported OS '${OS}'.  Use Darwin (OS X/macOS)."
+    exit 1
+fi
+
+# Build the wheel.  It will end up in dist/
+python3.5 setup.py bdist_wheel

@@ -1,0 +1,51 @@
+import requests
+import xmltodict
+
+from .common import REQUIRED_CONFIG_KEYS, ENDPOINT, REQUEST_URI, ITEM_LOOKUP_PARAMS
+from .utils import load_config, now_utc_str
+from .utils import build_canonical_query_string, build_string_to_sign, create_signature, \
+        build_request_url, get_amazon_product_url, parse_item_attributes, parse_item_price
+
+
+class API:
+    def __init__(self):
+        config = load_config()
+        for key in REQUIRED_CONFIG_KEYS:
+            setattr(self, key, config[key])
+
+    def _build_item_lookup_request_url(self, item_id, id_type):
+        params = ITEM_LOOKUP_PARAMS
+        params['AWSAccessKeyId'] = self.aws_access_key_id
+        params['AssociateTag'] = self.associate_tag
+        params['ItemId'] = item_id
+        params['IdType'] = id_type  # UPC, EAN
+        params['Timestamp'] = now_utc_str()
+        # Info on REST signature:
+        # https://docs.aws.amazon.com/AWSECommerceService/latest/DG/rest-signature.html
+        canonical_query_string = build_canonical_query_string(params)
+        string_to_sign = build_string_to_sign(ENDPOINT, REQUEST_URI, canonical_query_string)
+        signature = create_signature(self.aws_secret_access_key, string_to_sign)
+        request_url = build_request_url(ENDPOINT, REQUEST_URI, canonical_query_string, signature)
+        return request_url
+
+    def _parse_item_lookup_response(self, item_lookup_response):
+        result = {}
+        response_dict = xmltodict.parse(item_lookup_response.text)
+        item_lookup_response = response_dict['ItemLookupResponse']
+        items = item_lookup_response['Items']
+        item = items['Item']
+        result['ASIN'] = item.get('ASIN')
+        result['AmazonProductUrl'] = None
+        if result['ASIN']:
+            result['AmazonProductUrl'] = get_amazon_product_url(result['ASIN'])
+        item_attributes = parse_item_attributes(item)
+        result.update(item_attributes)
+        item_price = parse_item_price(item)
+        result.update(item_price)
+        return result
+
+    def item_lookup(self, item_id, id_type):
+        request_url = self._build_item_lookup_request_url(item_id, id_type)
+        response = requests.get(request_url)
+        result = self._parse_item_lookup_response(response)
+        return result
