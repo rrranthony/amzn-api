@@ -14,14 +14,18 @@ Usage
 =====
 
 Once you've registered as an `Amazon Associate`_, create the file
-``~/.amzn-api`` with the following data::
+``~/.amzn-api`` with the following data:
+
+.. code-block:: ini
 
     [credentials]
     aws_access_key_id = <your aws access key id>
     aws_secret_access_key = <your aws secret access key>
     associate_tag = <your associate tag>
 
-Here is a basic item lookup using UPC::
+Here is a basic item lookup using UPC:
+
+.. code-block:: python
 
     >>> from amzn.api import API
     >>> api = API()
