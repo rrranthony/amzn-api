@@ -17,9 +17,9 @@ Once you've registered as an `Amazon Associate`_, create the file
 ``~/.amzn-api`` with the following data::
 
     [credentials]
-    aws_access_key_id: <your aws access key id>
-    aws_secret_access_key: <your aws secret access key>
-    associate_tag: <your associate tag>
+    aws_access_key_id = <your aws access key id>
+    aws_secret_access_key = <your aws secret access key>
+    associate_tag = <your associate tag>
 
 Here is a basic item lookup using UPC::
 
