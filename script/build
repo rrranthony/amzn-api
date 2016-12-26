@@ -27,11 +27,11 @@ if [[ "$OS" == "Darwin" ]]; then  # OS X/macOS
         echo "ERROR: virtualenv for the project must be active.  Run 'source /path/to/env/bin/activate'."
         exit 1
     fi
-    pip3.5 install -r build_requirements.txt
+    pip install -r build_requirements.txt
 else
     echo "ERROR: unsupported OS '${OS}'.  Use Darwin (OS X/macOS)."
     exit 1
 fi
 
 # Build the wheel.  It will end up in dist/
-python3.5 setup.py bdist_wheel
+python setup.py bdist_wheel
