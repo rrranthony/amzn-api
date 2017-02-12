@@ -4,7 +4,7 @@ import time
 import requests
 import xmltodict
 
-from .common import REQUIRED_CONFIG_KEYS, ENDPOINT, REQUEST_URI, ITEM_LOOKUP_PARAMS
+from .common import REQUIRED_CONFIG_KEYS
 from .utils import load_config, now_utc_str
 from .utils import build_canonical_query_string, build_string_to_sign, create_signature, \
         build_request_url, get_amazon_product_url, parse_item_attributes, parse_item_price
@@ -12,6 +12,34 @@ from .utils import build_canonical_query_string, build_string_to_sign, create_si
 
 class API:
     REQUESTS_PER_SECOND = 0.5
+    ENDPOINT = 'webservices.amazon.com'
+    REQUEST_URI = '/onca/xml'  # URI is always the same for Amazon Product Advertising API requests
+    ITEM_LOOKUP_PARAMS = {
+        'Service': 'AWSECommerceService',
+        'Operation': 'ItemLookup',
+        'SearchIndex': 'Movies',
+        'ResponseGroup': 'ItemAttributes,Offers',
+    }
+    RESULT_FIELDS = [
+        'ASIN',
+        'AmazonNewPrice',
+        'AmazonNewPriceCurrencyCode',
+        'AmazonProductUrl',
+        'Binding',
+        'Director',
+        'EAN',
+        'Format',
+        'LowestCollectiblePrice',
+        'LowestCollectiblePriceCurrencyCode',
+        'LowestUsedPrice',
+        'LowestUsedPriceCurrencyCode',
+        'NumberOfDiscs',
+        'RegionCode',
+        'ReleaseDate',
+        'Studio',
+        'Title',
+        'UPC'
+    ]
 
     def __init__(self):
         config = load_config()
@@ -31,7 +59,7 @@ class API:
         self._last_request_time = datetime.now()
 
     def _build_item_lookup_request_url(self, item_id, id_type):
-        params = ITEM_LOOKUP_PARAMS
+        params = type(self).ITEM_LOOKUP_PARAMS
         if id_type == 'ASIN':
             # SearchIndex cannot be present when id_type is ASIN
             del params['SearchIndex']
@@ -43,9 +71,18 @@ class API:
         # Info on REST signature:
         # https://docs.aws.amazon.com/AWSECommerceService/latest/DG/rest-signature.html
         canonical_query_string = build_canonical_query_string(params)
-        string_to_sign = build_string_to_sign(ENDPOINT, REQUEST_URI, canonical_query_string)
+        string_to_sign = build_string_to_sign(
+            type(self).ENDPOINT,
+            type(self).REQUEST_URI,
+            canonical_query_string
+        )
         signature = create_signature(self.aws_secret_access_key, string_to_sign)
-        request_url = build_request_url(ENDPOINT, REQUEST_URI, canonical_query_string, signature)
+        request_url = build_request_url(
+            type(self).ENDPOINT,
+            type(self).REQUEST_URI,
+            canonical_query_string,
+            signature
+        )
         return request_url
 
     def _parse_item_lookup_response(self, item_lookup_response):
