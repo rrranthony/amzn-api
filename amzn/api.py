@@ -1,3 +1,6 @@
+from datetime import datetime
+import time
+
 import requests
 import xmltodict
 
@@ -8,10 +11,24 @@ from .utils import build_canonical_query_string, build_string_to_sign, create_si
 
 
 class API:
+    REQUESTS_PER_SECOND = 0.5
+
     def __init__(self):
         config = load_config()
         for key in REQUIRED_CONFIG_KEYS:
             setattr(self, key, config[key])
+        self._last_request_time = datetime(1970, 1, 1)
+        self._minimum_seconds_between_requests = 1.0 / type(self).REQUESTS_PER_SECOND
+
+    def _throttle(self):
+        since = datetime.now() - self._last_request_time
+        seconds_since_last_request = since.seconds + since.microseconds / 1000000.0
+        if seconds_since_last_request < self._minimum_seconds_between_requests:
+            wait = self._minimum_seconds_between_requests - seconds_since_last_request
+            time.sleep(wait)
+
+    def _update_last_request_time(self):
+        self._last_request_time = datetime.now()
 
     def _build_item_lookup_request_url(self, item_id, id_type):
         params = ITEM_LOOKUP_PARAMS
@@ -46,6 +63,8 @@ class API:
 
     def item_lookup(self, item_id, id_type):
         request_url = self._build_item_lookup_request_url(item_id, id_type)
+        self._throttle()
         response = requests.get(request_url)
+        self._update_last_request_time()
         result = self._parse_item_lookup_response(response)
         return result
