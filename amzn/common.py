@@ -17,3 +17,9 @@ ITEM_LOOKUP_PARAMS = {
     'SearchIndex': 'Movies',
     'ResponseGroup': 'ItemAttributes,Offers',
 }
+
+VALID_ID_TYPES = [
+    'UPC',
+    'EAN',
+    'ASIN',
+]
