@@ -69,15 +69,33 @@ def get_amazon_product_url(asin):
     return 'http://www.amazon.com/dp/{}'.format(asin)
 
 
+def _parse_attribute_format(format_):
+    if isinstance(format_, list):
+        if 'NTSC' in format_:
+            format_ = 'NTSC'
+        elif 'PAL' in format_:
+            format_ = 'PAL'
+    return format_
+
+
 def parse_item_attributes(item):
     result = {}
     item_attributes = item.get('ItemAttributes')
+    # If an attribute appears multiple times, e.g.,
+    #
+    #   <Actor>actor1</Actor>
+    #   <Actor>actor2</Actor>
+    #
+    # the value using the key will be a list instead of a string, e.g., ['actor1', 'actor2'], instead of just 'actor1'.
     if item_attributes:
         result['Binding'] = item_attributes.get('Binding')
         result['Director'] = item_attributes.get('Director')
         result['EAN'] = item_attributes.get('EAN')
+        result['Format'] = _parse_attribute_format(item_attributes.get('Format'))
         result['NumberOfDiscs'] = item_attributes.get('NumberOfDiscs')
+        result['RegionCode'] = item_attributes.get('RegionCode')
         result['ReleaseDate'] = item_attributes.get('ReleaseDate')
+        result['Studio'] = item_attributes.get('Studio')
         result['Title'] = item_attributes.get('Title')
         result['UPC'] = item_attributes.get('UPC')
     return result
@@ -85,13 +103,22 @@ def parse_item_attributes(item):
 
 def parse_item_price(item):
     result = {}
-    # Non-Amazon new
+    # Non-Amazon
     offer_summary = item.get('OfferSummary')
     if offer_summary:
         lowest_new_price = offer_summary.get('LowestNewPrice')
         if lowest_new_price:
             result['LowestNewPrice'] = lowest_new_price.get('FormattedPrice')
-    # Amazon new
+            result['LowestNewPriceCurrencyCode'] = lowest_new_price.get('CurrencyCode')
+        lowest_used_price = offer_summary.get('LowestUsedPrice')
+        if lowest_used_price:
+            result['LowestUsedPrice'] = lowest_used_price.get('FormattedPrice')
+            result['LowestUsedPriceCurrencyCode'] = lowest_used_price.get('CurrencyCode')
+        lowest_collectible_price = offer_summary.get('LowestCollectiblePrice')
+        if lowest_collectible_price:
+            result['LowestCollectiblePrice'] = lowest_collectible_price.get('FormattedPrice')
+            result['LowestCollectiblePriceCurrencyCode'] = lowest_collectible_price.get('CurrencyCode')
+    # Amazon new.  Use the highest new price.
     offers = item.get('Offers')
     if offers:
         total_offers = int(offers['TotalOffers'])
@@ -104,8 +131,9 @@ def parse_item_price(item):
                 condition = offer['OfferAttributes']['Condition']
                 if condition == 'New':
                     price = offer['OfferListing']['Price']
-                    offer_amount = int(price.get('Amount'))
+                    offer_amount = int(price['Amount'])
                     if offer_amount > best_offer_amount:
                         best_offer_amount = offer_amount
                         result['AmazonNewPrice'] = price.get('FormattedPrice')
+                        result['AmazonNewPriceCurrencyCode'] = price.get('CurrencyCode')
     return result
