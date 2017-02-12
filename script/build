@@ -27,7 +27,7 @@ if [[ "$OS" == "Darwin" ]]; then  # OS X/macOS
         echo "ERROR: virtualenv for the project must be active.  Run 'source /path/to/env/bin/activate'."
         exit 1
     fi
-    pip install -r build_requirements.txt
+    pip install -r requirements-build.txt
 else
     echo "ERROR: unsupported OS '${OS}'.  Use Darwin (OS X/macOS)."
     exit 1

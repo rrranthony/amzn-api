@@ -8,6 +8,9 @@ setup(name='amzn-api',
       author='Anthony Young',
       author_email='ayoung87@gmail.com',
       packages=find_packages(),
+      scripts=[
+          'amzn/bin/amazon_item_lookup'
+      ],
       install_requires=[
           'requests==2.13.0',
           'xmltodict==0.10.2',
