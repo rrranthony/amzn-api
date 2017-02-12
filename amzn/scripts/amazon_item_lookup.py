@@ -13,9 +13,10 @@ def main():
     argparser.add_argument('item_id', nargs='+', help='item ID to look up')
     args = argparser.parse_args()
     api = API()
-    result = api.item_lookup(item_id=args.item_id, id_type=args.id_type)
-    for key in sorted(result.keys()):
-        print('{}: {}'.format(key, result[key]))
+    for item_id in args.item_id:
+        result = api.item_lookup(item_id=item_id, id_type=args.id_type)
+        for key in sorted(result.keys()):
+            print('{}: {}'.format(key, result[key]))
 
 
 if __name__ == '__main__':
