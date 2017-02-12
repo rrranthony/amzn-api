@@ -11,3 +11,6 @@ env/
 # Unit test / coverage
 .cache/
 .coverage
+
+# Vim
+*.sw?
