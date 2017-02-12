@@ -148,7 +148,7 @@ def prepare_result_for_csv_output(result, output_fieldnames):
     if result is None:
         result = {}
     for fieldname in output_fieldnames:
-        if fieldname not in result:
+        if result.get(fieldname) is None:
             result[fieldname] = 'NULL'
     return result
 
