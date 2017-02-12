@@ -9,7 +9,7 @@ setup(name='amzn-api',
       author_email='ayoung87@gmail.com',
       packages=find_packages(),
       install_requires=[
-          'requests',
-          'xmltodict',
+          'requests==2.13.0',
+          'xmltodict==0.10.2',
       ],
 )

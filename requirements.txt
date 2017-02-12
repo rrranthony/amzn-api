@@ -1,7 +1,2 @@
-coverage
-pep8
-py
-pytest
-pytest-cov
-requests
-xmltodict
+requests==2.13.0
+xmltodict==0.10.2
