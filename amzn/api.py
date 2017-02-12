@@ -32,6 +32,9 @@ class API:
 
     def _build_item_lookup_request_url(self, item_id, id_type):
         params = ITEM_LOOKUP_PARAMS
+        if id_type == 'ASIN':
+            # SearchIndex cannot be present when id_type is ASIN
+            del params['SearchIndex']
         params['AWSAccessKeyId'] = self.aws_access_key_id
         params['AssociateTag'] = self.associate_tag
         params['ItemId'] = item_id
