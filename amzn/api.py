@@ -20,7 +20,7 @@ class API:
         'SearchIndex': 'Movies',
         'ResponseGroup': 'ItemAttributes,Offers',
     }
-    RESULT_FIELDS = [
+    RESULT_FIELDNAMES = [
         'ASIN',
         'AmazonNewPrice',
         'AmazonNewPriceCurrencyCode',
@@ -29,8 +29,13 @@ class API:
         'Director',
         'EAN',
         'Format',
+        'LookupDateTimeUtc',
+        'LookupIdType',
+        'LookupItemId',
         'LowestCollectiblePrice',
         'LowestCollectiblePriceCurrencyCode',
+        'LowestNewPrice',
+        'LowestNewPriceCurrencyCode',
         'LowestUsedPrice',
         'LowestUsedPriceCurrencyCode',
         'NumberOfDiscs',
@@ -107,4 +112,7 @@ class API:
         response = requests.get(request_url)
         self._update_last_request_time()
         result = self._parse_item_lookup_response(response)
+        result.update({'LookupDateTimeUtc': now_utc_str()})
+        result.update({'LookupIdType': id_type})
+        result.update({'LookupItemId': item_id})
         return result

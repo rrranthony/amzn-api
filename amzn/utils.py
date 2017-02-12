@@ -1,4 +1,5 @@
 import configparser
+import csv
 import os
 import urllib
 import hmac
@@ -75,6 +76,9 @@ def _parse_attribute_format(format_):
             format_ = 'NTSC'
         elif 'PAL' in format_:
             format_ = 'PAL'
+        else:
+            # Only values like 'Color', 'Widescreen', etc. are given.  Since we just want NTSC or PAL, null this out.
+            format_ = None
     return format_
 
 
@@ -137,3 +141,24 @@ def parse_item_price(item):
                         result['AmazonNewPrice'] = price.get('FormattedPrice')
                         result['AmazonNewPriceCurrencyCode'] = price.get('CurrencyCode')
     return result
+
+
+def prepare_result_for_csv_output(result, output_fieldnames):
+    # TODO(rrranthony): format list values to something else?
+    if result is None:
+        result = {}
+    for fieldname in output_fieldnames:
+        if fieldname not in result:
+            result[fieldname] = 'NULL'
+    return result
+
+
+def write_results_to_csv(results, csv_fieldnames, csv_filename):
+    prepared_results = []
+    for result in results:
+        prepared_results.append(prepare_result_for_csv_output(result, csv_fieldnames))
+    with open(csv_filename, 'w') as csv_outfile:
+        writer = csv.DictWriter(csv_outfile, fieldnames=csv_fieldnames)
+        writer.writeheader()
+        for prepared_result in prepared_results:
+            writer.writerow(prepared_result)
