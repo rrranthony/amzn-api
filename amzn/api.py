@@ -38,7 +38,7 @@ class API:
         params['AWSAccessKeyId'] = self.aws_access_key_id
         params['AssociateTag'] = self.associate_tag
         params['ItemId'] = item_id
-        params['IdType'] = id_type  # UPC, EAN
+        params['IdType'] = id_type  # UPC, EAN, ASIN
         params['Timestamp'] = now_utc_str()
         # Info on REST signature:
         # https://docs.aws.amazon.com/AWSECommerceService/latest/DG/rest-signature.html
