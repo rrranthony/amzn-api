@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime
 import time
 
@@ -5,6 +6,7 @@ import requests
 import xmltodict
 
 from .common import REQUIRED_CONFIG_KEYS
+from .ItemLookup import ItemLookup
 from .utils import load_config, now_utc_str
 from .utils import build_canonical_query_string, build_string_to_sign, create_signature, \
         build_request_url, get_amazon_product_url, parse_item_attributes, parse_item_price
@@ -41,12 +43,14 @@ class API:
         'NumberOfDiscs',
         'RegionCode',
         'ReleaseDate',
+        'RunningTime',
         'Studio',
         'Title',
         'UPC'
     ]
 
-    def __init__(self):
+    def __init__(self, cache_lookups=True):
+        self._cache_lookups = cache_lookups
         config = load_config()
         for key in REQUIRED_CONFIG_KEYS:
             setattr(self, key, config[key])
@@ -63,8 +67,8 @@ class API:
     def _update_last_request_time(self):
         self._last_request_time = datetime.now()
 
-    def _build_item_lookup_request_url(self, item_id, id_type):
-        params = type(self).ITEM_LOOKUP_PARAMS
+    def _build_item_lookup_parameters(self, item_id, id_type):
+        params = copy.deepcopy(type(self).ITEM_LOOKUP_PARAMS)
         if id_type == 'ASIN':
             # SearchIndex cannot be present when id_type is ASIN
             del params['SearchIndex']
@@ -73,9 +77,12 @@ class API:
         params['ItemId'] = item_id
         params['IdType'] = id_type  # UPC, EAN, ASIN
         params['Timestamp'] = now_utc_str()
+        return params
+
+    def _build_item_lookup_request_url(self, item_lookup_parameters):
         # Info on REST signature:
         # https://docs.aws.amazon.com/AWSECommerceService/latest/DG/rest-signature.html
-        canonical_query_string = build_canonical_query_string(params)
+        canonical_query_string = build_canonical_query_string(item_lookup_parameters)
         string_to_sign = build_string_to_sign(
             type(self).ENDPOINT,
             type(self).REQUEST_URI,
@@ -90,9 +97,9 @@ class API:
         )
         return request_url
 
-    def _parse_item_lookup_response(self, item_lookup_response):
+    def _parse_item_lookup_response_text(self, item_lookup_response_text):
         result = {}
-        response_dict = xmltodict.parse(item_lookup_response.text)
+        response_dict = xmltodict.parse(item_lookup_response_text)
         item_lookup_response = response_dict['ItemLookupResponse']
         items = item_lookup_response['Items']
         item = items['Item']
@@ -106,13 +113,28 @@ class API:
         result.update(item_price)
         return result
 
-    def item_lookup(self, item_id, id_type):
-        request_url = self._build_item_lookup_request_url(item_id, id_type)
-        self._throttle()
-        response = requests.get(request_url)
-        self._update_last_request_time()
-        result = self._parse_item_lookup_response(response)
-        result.update({'LookupDateTimeUtc': now_utc_str()})
+    def lookup_item(self, item_id, id_type):
+        from_cache = False
+        item_lookup_parameters = self._build_item_lookup_parameters(item_id, id_type)
+        item_lookup = ItemLookup(item_lookup_parameters)
+        if item_lookup.cache_exists():
+            cached_item_lookup = item_lookup.load_from_cache()
+            response_text = cached_item_lookup['item_lookup_response_text']
+            from_cache = True
+        else:
+            request_url = self._build_item_lookup_request_url(item_lookup_parameters)
+            self._throttle()
+            response = requests.get(request_url)
+            response_text = response.text
+            if self._cache_lookups:
+                item_lookup.set_item_lookup_response_text(response_text)
+                item_lookup.cache()
+            self._update_last_request_time()
+        result = self._parse_item_lookup_response_text(response_text)
+        if from_cache:
+            result.update({'LookupDateTimeUtc': cached_item_lookup['item_lookup_parameters']['Timestamp']})
+        else:
+            result.update({'LookupDateTimeUtc': now_utc_str()})
         result.update({'LookupIdType': id_type})
         result.update({'LookupItemId': item_id})
         return result

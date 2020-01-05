@@ -19,7 +19,7 @@ def main():
     results = []
     for item_id in args.item_id:
         # TODO(rrranthony): add progress, e.g., looking up item X of Y...
-        result = api.item_lookup(item_id=item_id, id_type=args.id_type)
+        result = api.lookup_item(item_id=item_id, id_type=args.id_type)
         results.append(result)
         if args.csv_outfile is None:
             for field in result:

@@ -9,7 +9,8 @@ setup(name='amzn-api',
       author_email='ayoung87@gmail.com',
       packages=find_packages(),
       scripts=[
-          'amzn/bin/amazon_item_lookup'
+          'amzn/bin/amazon_item_lookup',
+          'amzn/bin/print_cached_raw_item_lookup_xml'
       ],
       install_requires=[
           'requests==2.13.0',

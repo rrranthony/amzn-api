@@ -1,0 +1,8 @@
+#!/usr/bin/env python
+import sys
+
+from amzn.scripts import print_cached_raw_item_lookup_xml
+
+
+if __name__ == '__main__':
+    sys.exit(print_cached_raw_item_lookup_xml.main())

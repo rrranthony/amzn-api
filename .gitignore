@@ -14,3 +14,7 @@ env/
 
 # Vim
 *.sw?
+
+
+# Data files
+etc/

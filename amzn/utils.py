@@ -82,6 +82,14 @@ def _parse_attribute_format(format_):
     return format_
 
 
+def _parse_attribute_running_time(running_time):
+    # Raw XML: <RunningTime Units="minutes">116</RunningTime>
+    # xmltodict: OrderedDict([('@Units', 'minutes'), ('#text', '116')])
+    # Only return a minutes value, since the result dictionary field is RunningTimeMinutes
+    if running_time.get('@Units').lower() == 'minutes':
+        return running_time.get('#text')
+
+
 def parse_item_attributes(item):
     result = {}
     item_attributes = item.get('ItemAttributes')
@@ -91,6 +99,7 @@ def parse_item_attributes(item):
     #   <Actor>actor2</Actor>
     #
     # the value using the key will be a list instead of a string, e.g., ['actor1', 'actor2'], instead of just 'actor1'.
+    print(item_attributes['RunningTime']['@Units'])
     if item_attributes:
         result['Binding'] = item_attributes.get('Binding')
         result['Director'] = item_attributes.get('Director')
@@ -99,6 +108,7 @@ def parse_item_attributes(item):
         result['NumberOfDiscs'] = item_attributes.get('NumberOfDiscs')
         result['RegionCode'] = item_attributes.get('RegionCode')
         result['ReleaseDate'] = item_attributes.get('ReleaseDate')
+        result['RunningTimeMinutes'] = _parse_attribute_running_time(item_attributes.get('RunningTime'))
         result['Studio'] = item_attributes.get('Studio')
         result['Title'] = item_attributes.get('Title')
         result['UPC'] = item_attributes.get('UPC')
